@@ -2,9 +2,9 @@
 import time
 import SocketServer
 from ddbpy.client import Send
+import os
 
-DFE = ('127.0.0.1', 5555)
-
+DFE = (os.environ['DFEHOST'] if 'DFEHOST' in os.environ else '127.0.0.1', 5555)
 BUCKET = 'metrics'
 DEBUG = True
 
@@ -27,6 +27,6 @@ class TCPHandler(SocketServer.BaseRequestHandler):
 
 
 def main():
-    HOST, PORT = "0.0.0.0", 2003
+    HOST, PORT = os.environ['DDBGRAPHITE_INTERFACE'] if 'DDBGRAPHITE_INTERFACE' in os.environ else "0.0.0.0", 2003
     server = SocketServer.TCPServer((HOST, PORT), TCPHandler)
     server.serve_forever()
