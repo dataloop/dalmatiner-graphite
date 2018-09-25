@@ -8,8 +8,7 @@ from multiprocessing.dummy import Pool
 DDB = (str(os.environ['DDBHOST']) if 'DDBHOST' in os.environ else '127.0.0.1', 5555)
 BUCKET = str(os.environ['DDBBUCKET']) if 'DDBBUCKET' in os.environ else 'metrics'
 DEBUG = os.environ['DEBUG'] in ['true','True'] if 'DEBUG' in os.environ else False
-# BUCKET = 'metrics'
-# DEBUG = True
+
 if DEBUG:
     print('GRAPHITE DDB: %s, BUCKET: %s, DEBUG: %s' % (DDB, BUCKET, DEBUG) )
 
@@ -80,7 +79,6 @@ class TCPHandler(SocketServer.BaseRequestHandler):
 
                     p = pool.map( send_payload, zip(metrics, values) )
                     
-                    # send.send_payload( metric, ts, value )
         except Exception, e:
             print e
 
