@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 import time
+import threading
 import SocketServer
 from ddbpy.client import Send
 import os
 from multiprocessing.dummy import Pool
+from multiprocessing import cpu_count
 
 DDB = (str(os.environ['DDBHOST']) if 'DDBHOST' in os.environ else '127.0.0.1', 5555)
 BUCKET = str(os.environ['DDBBUCKET']) if 'DDBBUCKET' in os.environ else 'metrics'
@@ -13,6 +15,9 @@ if DEBUG:
     print('GRAPHITE DDB: %s, BUCKET: %s, DEBUG: %s' % (DDB, BUCKET, DEBUG) )
 
 pool = {}
+
+class ThreadedTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
+    pass
 
 def realign_metrics(metrics):
 
@@ -90,6 +95,14 @@ def main():
     if DEBUG:
         print('ddbgraphite trying to start on ', HOST, PORT)
 
-    pool = Pool()
-    server = SocketServer.TCPServer((HOST, PORT), TCPHandler)
-    server.serve_forever()
+    pool = Pool(processes=cpu_count())
+    server = ThreadedTCPServer((HOST, PORT), TCPHandler)
+
+    # Start a thread with the server -- that thread will then start one
+    # more thread for each request
+    server_thread = threading.Thread(target=server.serve_forever)
+    # Exit the server thread when the main thread terminates
+    server_thread.daemon = False
+    server_thread.start()
+    print("Server loop running in thread:", server_thread.name)
+
